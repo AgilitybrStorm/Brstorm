@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="color-scheme" content="light only">
+<meta name="supported-color-schemes" content="light">
+<meta name="theme-color" content="#7C3AED">
+<title>BrStorm — Controle de Incubação</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --lilas-claro: #F5F3FF;
+    --lilas-medio: #DDD6FE;
+    --lilas: #7C3AED;
+    --lilas-escuro: #5B21B6;
+    --amarelo-claro: #FEF3C7;
+    --amarelo-medio: #FDE68A;
+    --amarelo: #FCD34D;
+    --amarelo-escuro: #B45309;
+    --preto: #1F1B2E;
+    --branco: #FFFFFF;
+    --cinza: #E5E7EB;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    background: var(--branco) !important;
+    color: var(--preto);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body {
+    background:
+      radial-gradient(ellipse at top, var(--lilas-claro) 0%, var(--branco) 60%) !important;
+  }
+
+  .app {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 16px 12px 80px;
+    position: relative;
+  }
+
+  /* ============ HEADER ============ */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; padding: 4px 0 16px;
+    border-bottom: 1px solid var(--lilas-medio);
+    margin-bottom: 16px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
+  .logo {
+    width: 40px; height: 40px; flex-shrink: 0;
+    background: var(--lilas); border-radius: 10px;
+    display: grid; place-items: center;
+    box-shadow: 0 4px 12px -2px rgba(124, 58, 237, 0.4);
+  }
+  .brand-text { min-width: 0; }
+  .brand-text h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 22px; font-weight: 600;
+    color: var(--lilas-escuro);
+    line-height: 1; letter-spacing: -0.02em;
+  }
+  .brand-text .slogan {
+    font-size: 9px; color: var(--lilas);
+    margin-top: 3px; font-style: italic;
+    line-height: 1.2; opacity: 0.75;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .clock {
+    text-align: right; flex-shrink: 0;
+    background: var(--amarelo);
+    padding: 8px 12px; border-radius: 10px;
+    box-shadow: 0 2px 8px -2px rgba(252, 211, 77, 0.6);
+    border: 1px solid var(--amarelo-medio);
+  }
+  .clock-time {
+    font-family: 'Fraunces', serif;
+    font-size: 22px; font-weight: 600;
+    color: var(--preto); line-height: 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+  .clock-date {
+    font-size: 9px; color: var(--preto);
+    margin-top: 3px; font-weight: 500;
+    text-transform: lowercase;
+    letter-spacing: 0.02em;
+  }
+
+  /* ============ STATS ============ */
+  .stats {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 6px; margin-bottom: 20px;
+  }
+  .stat {
+    background: var(--branco);
+    border-radius: 10px;
+    padding: 8px 10px;
+    border: 1px solid var(--lilas-medio);
+  }
+  .stat-label {
+    font-size: 8px; color: var(--lilas);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    font-weight: 700; margin-bottom: 2px;
+  }
+  .stat-value {
+    font-family: 'Fraunces', serif;
+    font-size: 22px; font-weight: 600;
+    color: var(--preto); line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat:nth-child(2) { background: var(--amarelo); border-color: var(--amarelo-medio); }
+  .stat:nth-child(2) .stat-label { color: var(--amarelo-escuro); }
+
+  /* ============ MOTOR DE VIRAGEM ============ */
+  .tray-wrapper {
+    position: relative;
+    margin-bottom: 20px;
+  }
+
+  .motor {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto -2px;
+    position: relative;
+    z-index: 3;
+    width: fit-content;
+  }
+  .motor-box {
+    background: linear-gradient(180deg, var(--lilas-escuro) 0%, var(--lilas) 100%);
+    color: var(--branco);
+    padding: 10px 28px 12px;
+    border-radius: 14px 14px 4px 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    box-shadow:
+      0 6px 16px -4px rgba(124, 58, 237, 0.5),
+      0 1px 0 rgba(255,255,255,0.2) inset;
+    border: 1px solid var(--lilas-escuro);
+  }
+  .motor-icon {
+    width: 18px; height: 18px;
+    display: grid; place-items: center;
+    background: rgba(255,255,255,0.15);
+    border-radius: 50%;
+  }
+  .motor-spin {
+    animation: spin 4s linear infinite;
+    transform-origin: center;
+  }
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* Eixo do motor que conecta as 7 colunas */
+  .eixo {
+    height: 8px;
+    background: linear-gradient(180deg, var(--lilas) 0%, var(--lilas-escuro) 100%);
+    border-radius: 4px 4px 0 0;
+    margin: 0 4px;
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 2px 6px -2px rgba(124, 58, 237, 0.4);
+  }
+
+  /* ============ BANDEJA ============ */
+  .tray {
+    background: var(--branco);
+    border: 1.5px solid var(--lilas-medio);
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    padding: 12px 6px 12px;
+    box-shadow:
+      0 10px 30px -10px rgba(91, 33, 182, 0.2);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+  }
+
+  .col {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 6px 3px 8px;
+    border-radius: 8px;
+    position: relative;
+  }
+  .col-lilas {
+    background: var(--lilas-claro);
+    border: 1px solid var(--lilas-medio);
+  }
+  .col-amarelo {
+    background: var(--amarelo-claro);
+    border: 1px solid var(--amarelo-medio);
+  }
+
+  .col-label {
+    font-family: 'Fraunces', serif;
+    font-size: 15px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1;
+    padding: 2px 0 6px;
+    margin-bottom: 2px;
+    border-bottom: 1px dashed;
+  }
+  .col-lilas .col-label {
+    color: var(--lilas-escuro);
+    border-color: var(--lilas-medio);
+  }
+  .col-amarelo .col-label {
+    color: var(--amarelo-escuro);
+    border-color: var(--amarelo-medio);
+  }
+
+  .egg {
+    aspect-ratio: 1;
+    background: var(--branco);
+    border: 1.5px solid;
+    border-radius: 50%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    cursor: pointer;
+    padding: 0; font-family: inherit;
+    transition: transform 0.12s ease, background 0.2s;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+  }
+  .col-lilas .egg { border-color: var(--lilas-medio); }
+  .col-amarelo .egg { border-color: var(--amarelo-medio); }
+  .egg:active { transform: scale(0.88); }
+
+  .egg-pos {
+    font-size: 8px; font-weight: 600;
+    line-height: 1; opacity: 0.55;
+  }
+  .col-lilas .egg-pos { color: var(--lilas); }
+  .col-amarelo .egg-pos { color: var(--amarelo-escuro); }
+
+  /* Ovo chocando — preenchido com a cor da coluna */
+  .col-lilas .egg.chocando {
+    background: var(--lilas);
+    border-color: var(--lilas-escuro);
+    box-shadow: 0 2px 6px -1px rgba(124, 58, 237, 0.5);
+  }
+  .col-amarelo .egg.chocando {
+    background: var(--amarelo);
+    border-color: var(--amarelo-escuro);
+    box-shadow: 0 2px 6px -1px rgba(252, 211, 77, 0.6);
+  }
+  .egg.chocando .egg-pos { display: none; }
+  .egg-name {
+    font-size: 8px; font-weight: 700;
+    line-height: 1; max-width: 90%;
+    text-overflow: ellipsis; overflow: hidden; white-space: nowrap;
+  }
+  .egg-time {
+    font-family: 'Fraunces', serif;
+    font-size: 8px; font-weight: 600;
+    line-height: 1; margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+  .col-lilas .egg.chocando .egg-name { color: var(--branco); }
+  .col-lilas .egg.chocando .egg-time { color: var(--amarelo-medio); }
+  .col-amarelo .egg.chocando .egg-name { color: var(--preto); }
+  .col-amarelo .egg.chocando .egg-time { color: var(--lilas-escuro); }
+
+  .egg.chocando::after {
+    content: ''; position: absolute;
+    top: 2px; right: 2px;
+    width: 4px; height: 4px;
+    background: var(--branco);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  .col-amarelo .egg.chocando::after { background: var(--preto); }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* ============ MODAL (bottom-sheet) ============ */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(31, 27, 46, 0.55);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s;
+  }
+  .modal-backdrop.open { opacity: 1; pointer-events: auto; }
+
+  .modal {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--branco);
+    border-radius: 24px 24px 0 0;
+    padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+    z-index: 101;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    max-width: 480px; margin: 0 auto;
+  }
+  .modal.open { transform: translateY(0); }
+
+  .modal-handle {
+    width: 40px; height: 4px;
+    background: var(--cinza); border-radius: 2px;
+    margin: 0 auto 16px;
+  }
+
+  .modal-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 18px;
+  }
+  .modal-pos {
+    width: 52px; height: 52px;
+    background: var(--lilas); color: var(--branco);
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: 'Fraunces', serif;
+    font-size: 18px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .modal-pos.amarelo { background: var(--amarelo); color: var(--preto); }
+  .modal-title {
+    font-family: 'Fraunces', serif;
+    font-size: 20px; font-weight: 600;
+    color: var(--preto); line-height: 1.1;
+  }
+  .modal-subtitle {
+    font-size: 12px; color: var(--lilas);
+    margin-top: 2px;
+  }
+
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block;
+    font-size: 10px; font-weight: 700;
+    color: var(--lilas); text-transform: uppercase;
+    letter-spacing: 0.08em; margin-bottom: 6px;
+  }
+  .field input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1.5px solid var(--lilas-medio);
+    border-radius: 12px;
+    font-family: inherit; font-size: 16px;
+    background: var(--lilas-claro);
+    color: var(--preto);
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .field input:focus {
+    border-color: var(--lilas);
+    background: var(--branco);
+  }
+
+  .info-block {
+    background: var(--lilas-claro);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    display: grid; gap: 6px;
+  }
+  .info-row {
+    display: flex; justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+  }
+  .info-row span:first-child {
+    color: var(--lilas); font-weight: 500;
+  }
+  .info-row span:last-child {
+    color: var(--preto); font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .info-row .destaque {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    color: var(--lilas-escuro);
+  }
+
+  .modal-actions {
+    display: flex; gap: 8px; margin-top: 4px;
+  }
+  .btn {
+    flex: 1;
+    padding: 13px 16px;
+    border: none; border-radius: 12px;
+    font-family: inherit; font-size: 14px; font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s;
+    letter-spacing: 0.02em;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--lilas); color: var(--branco); }
+  .btn-secondary { background: var(--lilas-claro); color: var(--lilas-escuro); }
+  .btn-danger {
+    background: var(--branco); color: var(--lilas-escuro);
+    border: 1.5px solid var(--lilas-medio);
+  }
+  .btn-full { width: 100%; margin-top: 8px; }
+
+  /* ============ FOOTER ACTIONS ============ */
+  .footer-actions {
+    text-align: center; margin-top: 12px;
+  }
+  .reset-btn {
+    background: none; border: none;
+    color: var(--lilas); opacity: 0.5;
+    font-family: inherit; font-size: 11px;
+    cursor: pointer; padding: 8px 16px;
+    text-decoration: underline;
+  }
+  .reset-btn:active { opacity: 1; }
+
+  /* ============ AJUSTES TELAS ============ */
+  @media (max-width: 380px) {
+    .app { padding: 12px 8px 80px; }
+    .grid { gap: 3px; }
+    .col { padding: 4px 2px 6px; gap: 2px; }
+    .col-label { font-size: 12px; }
+    .egg-name, .egg-time, .egg-pos { font-size: 7px; }
+  }
+  @media (min-width: 540px) {
+    .grid { gap: 8px; }
+    .col-label { font-size: 18px; }
+    .egg-name, .egg-time { font-size: 10px; }
+    .egg-pos { font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header>
+    <div class="brand">
+      <div class="logo">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <ellipse cx="12" cy="13" rx="7" ry="9" fill="#FCD34D"/>
+          <path d="M8 11 Q12 7 16 11" stroke="#5B21B6" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>BrStorm</h1>
+        <div class="slogan">A viagem — aves ornamentais &amp; poedeiras</div>
+      </div>
+    </div>
+    <div class="clock">
+      <div class="clock-time" id="clock-time">--:--</div>
+      <div class="clock-date" id="clock-date">--</div>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">Capacidade</div>
+      <div class="stat-value">63</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Chocando</div>
+      <div class="stat-value" id="stat-chocando">0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Livres</div>
+      <div class="stat-value" id="stat-livres">63</div>
+    </div>
+  </div>
+
+  <div class="tray-wrapper">
+    <div class="motor">
+      <div class="motor-box">
+        <div class="motor-icon">
+          <svg class="motor-spin" width="12" height="12" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2 L12 6 M12 18 L12 22 M2 12 L6 12 M18 12 L22 12 M4.93 4.93 L7.76 7.76 M16.24 16.24 L19.07 19.07 M4.93 19.07 L7.76 16.24 M16.24 7.76 L19.07 4.93" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="3" stroke="white" stroke-width="2" fill="none"/>
+          </svg>
+        </div>
+        <span>Motor de Viragem</span>
+      </div>
+    </div>
+
+    <div class="eixo"></div>
+
+    <div class="tray">
+      <div class="grid" id="grid"></div>
+    </div>
+  </div>
+
+  <div class="footer-actions">
+    <button class="reset-btn" id="reset-btn">Limpar todos os registros</button>
+  </div>
+
+</div>
+
+<!-- ============ MODAL ============ -->
+<div class="modal-backdrop" id="backdrop"></div>
+<div class="modal" id="modal">
+  <div class="modal-handle"></div>
+
+  <div class="modal-header">
+    <div class="modal-pos" id="modal-pos">A1</div>
+    <div>
+      <div class="modal-title" id="modal-title">Nova incubação</div>
+      <div class="modal-subtitle" id="modal-subtitle">Posição livre</div>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="egg-name-input">Nome (galinha ou casal)</label>
+    <input type="text" id="egg-name-input" placeholder="Ex: Aurora, Casal 03..." maxlength="20" autocomplete="off">
+  </div>
+
+  <div class="info-block">
+    <div class="info-row">
+      <span>Início</span>
+      <span id="info-inicio">—</span>
+    </div>
+    <div class="info-row" id="info-tempo-row" style="display:none;">
+      <span>Tempo decorrido</span>
+      <span class="destaque" id="info-tempo">—</span>
+    </div>
+  </div>
+
+  <div class="modal-actions">
+    <button class="btn btn-secondary" id="btn-cancel">Cancelar</button>
+    <button class="btn btn-primary" id="btn-save">Iniciar incubação</button>
+  </div>
+  <button class="btn btn-danger btn-full" id="btn-remove" style="display:none;">Liberar posição</button>
+</div>
+
+<script>
+const COLS = ['A','B','C','D','E','F','G'];
+const ROWS = 9;
+const STORAGE_KEY = 'brstorm-eggs-v2';
+
+let eggs = loadEggs();
+let currentPos = null;
+
+function loadEggs() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+  catch { return {}; }
+}
+function saveEggs() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(eggs));
+}
+
+function formatElapsed(startMs) {
+  const diff = Date.now() - startMs;
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff % 86400000) / 3600000);
+  return `${days}d ${hours}h`;
+}
+
+function formatDateTime(ms) {
+  return new Date(ms).toLocaleString('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  });
+}
+
+function colTema(letter) {
+  const idx = COLS.indexOf(letter);
+  return idx % 2 === 0 ? 'lilas' : 'amarelo';
+}
+
+function renderGrid() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  let chocando = 0;
+
+  COLS.forEach(letter => {
+    const tema = colTema(letter);
+    const col = document.createElement('div');
+    col.className = `col col-${tema}`;
+    col.innerHTML = `<div class="col-label">${letter}</div>`;
+
+    for (let n = 1; n <= ROWS; n++) {
+      const pos = `${letter}${n}`;
+      const egg = eggs[pos];
+      const btn = document.createElement('button');
+      btn.className = 'egg' + (egg ? ' chocando' : '');
+      btn.dataset.pos = pos;
+
+      if (egg) {
+        chocando++;
+        btn.innerHTML = `
+          <div class="egg-name">${egg.name}</div>
+          <div class="egg-time" data-start="${egg.start}">${formatElapsed(egg.start)}</div>
+        `;
+      } else {
+        btn.innerHTML = `<div class="egg-pos">${n}</div>`;
+      }
+
+      btn.addEventListener('click', () => openModal(pos));
+      col.appendChild(btn);
+    }
+    grid.appendChild(col);
+  });
+
+  document.getElementById('stat-chocando').textContent = String(chocando).padStart(2,'0');
+  document.getElementById('stat-livres').textContent = String(63 - chocando).padStart(2,'0');
+}
+
+function openModal(pos) {
+  currentPos = pos;
+  const letter = pos[0];
+  const tema = colTema(letter);
+  const egg = eggs[pos];
+  const modalPos = document.getElementById('modal-pos');
+  const modalTitle = document.getElementById('modal-title');
+  const modalSubtitle = document.getElementById('modal-subtitle');
+  const input = document.getElementById('egg-name-input');
+  const btnSave = document.getElementById('btn-save');
+  const btnRemove = document.getElementById('btn-remove');
+  const infoInicio = document.getElementById('info-inicio');
+  const infoTempo = document.getElementById('info-tempo');
+  const tempoRow = document.getElementById('info-tempo-row');
+
+  modalPos.textContent = pos;
+  modalPos.classList.toggle('amarelo', tema === 'amarelo');
+
+  if (egg) {
+    modalTitle.textContent = 'Em incubação';
+    modalSubtitle.textContent = `Coluna ${letter} · editar ou liberar`;
+    input.value = egg.name;
+    btnSave.textContent = 'Salvar alterações';
+    btnRemove.style.display = 'block';
+    infoInicio.textContent = formatDateTime(egg.start);
+    infoTempo.textContent = formatElapsed(egg.start);
+    tempoRow.style.display = 'flex';
+  } else {
+    modalTitle.textContent = 'Nova incubação';
+    modalSubtitle.textContent = `Coluna ${letter} · posição livre`;
+    input.value = '';
+    btnSave.textContent = 'Iniciar incubação';
+    btnRemove.style.display = 'none';
+    infoInicio.textContent = formatDateTime(Date.now()) + ' (agora)';
+    tempoRow.style.display = 'none';
+  }
+
+  document.getElementById('modal').classList.add('open');
+  document.getElementById('backdrop').classList.add('open');
+  setTimeout(() => input.focus(), 300);
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  document.getElementById('backdrop').classList.remove('open');
+  currentPos = null;
+}
+
+function saveCurrentEgg() {
+  if (!currentPos) return;
+  const name = document.getElementById('egg-name-input').value.trim();
+  if (!name) { document.getElementById('egg-name-input').focus(); return; }
+  if (eggs[currentPos]) {
+    eggs[currentPos].name = name;
+  } else {
+    eggs[currentPos] = { name, start: Date.now() };
+  }
+  saveEggs();
+  renderGrid();
+  closeModal();
+}
+
+function removeCurrentEgg() {
+  if (!currentPos) return;
+  if (!confirm(`Liberar a posição ${currentPos}? O registro será apagado.`)) return;
+  delete eggs[currentPos];
+  saveEggs();
+  renderGrid();
+  closeModal();
+}
+
+document.getElementById('backdrop').addEventListener('click', closeModal);
+document.getElementById('btn-cancel').addEventListener('click', closeModal);
+document.getElementById('btn-save').addEventListener('click', saveCurrentEgg);
+document.getElementById('btn-remove').addEventListener('click', removeCurrentEgg);
+document.getElementById('egg-name-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') saveCurrentEgg();
+});
+
+function updateClock() {
+  const now = new Date();
+  const opts = { timeZone: 'America/Sao_Paulo', hour12: false };
+  document.getElementById('clock-time').textContent =
+    now.toLocaleTimeString('pt-BR', { ...opts, hour: '2-digit', minute: '2-digit' });
+  document.getElementById('clock-date').textContent =
+    now.toLocaleDateString('pt-BR', { ...opts, weekday: 'short', day: '2-digit', month: 'short' });
+
+  document.querySelectorAll('.egg-time[data-start]').forEach(el => {
+    el.textContent = formatElapsed(parseInt(el.dataset.start));
+  });
+  if (currentPos && eggs[currentPos]) {
+    document.getElementById('info-tempo').textContent = formatElapsed(eggs[currentPos].start);
+  }
+}
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  if (!confirm('Apagar TODOS os registros de incubação? Esta ação não pode ser desfeita.')) return;
+  eggs = {};
+  saveEggs();
+  renderGrid();
+});
+
+renderGrid();
+updateClock();
+setInterval(updateClock, 60000);
+setInterval(() => {
+  const now = new Date();
+  const opts = { timeZone: 'America/Sao_Paulo', hour12: false };
+  document.getElementById('clock-time').textContent =
+    now.toLocaleTimeString('pt-BR', { ...opts, hour: '2-digit', minute: '2-digit' });
+}, 1000);
+</script>
+
+</body>
+</html>
