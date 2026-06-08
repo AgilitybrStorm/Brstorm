@@ -10,11 +10,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Supabase SDK via CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  /* ============ VARIÁVEIS GLOBAIS ============
-     Paleta de cores do projeto BrStorm.
-     Lilás = colunas A, C, E, G | Amarelo = colunas B, D, F
-  */
+  /* ============ VARIÁVEIS GLOBAIS ============ */
   :root {
     color-scheme: light;
     --lilas-claro: #F5F3FF;
@@ -28,7 +27,6 @@
     --preto: #1F1B2E;
     --branco: #FFFFFF;
     --cinza: #E5E7EB;
-    /* CORREÇÃO 3: verde oliva/militar para fundo da bandeja */
     --verde-oliva: #4B5320;
   }
 
@@ -43,11 +41,102 @@
     overflow-x: hidden;
   }
   body {
-    background:
-      radial-gradient(ellipse at top, var(--lilas-claro) 0%, var(--branco) 60%) !important;
+    background: radial-gradient(ellipse at top, var(--lilas-claro) 0%, var(--branco) 60%) !important;
   }
 
-  /* Container principal — centralizado, max 480px (mobile-first) */
+  /* ============ TELA DE LOGIN ============ */
+  #login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .login-box {
+    background: var(--branco);
+    border: 1.5px solid var(--lilas-medio);
+    border-radius: 20px;
+    padding: 32px 24px;
+    width: 100%;
+    max-width: 360px;
+    box-shadow: 0 10px 40px -10px rgba(124, 58, 237, 0.2);
+  }
+  .login-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .login-logo-icon {
+    width: 48px; height: 48px;
+    background: var(--lilas);
+    border-radius: 12px;
+    display: grid; place-items: center;
+    box-shadow: 0 4px 12px -2px rgba(124, 58, 237, 0.4);
+    flex-shrink: 0;
+  }
+  .login-logo h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 26px; font-weight: 600;
+    color: var(--lilas-escuro);
+    line-height: 1;
+  }
+  .login-logo p {
+    font-size: 10px; color: var(--lilas);
+    font-style: italic; opacity: 0.75;
+    margin-top: 3px;
+  }
+  .login-title {
+    font-family: 'Fraunces', serif;
+    font-size: 18px; font-weight: 600;
+    color: var(--preto);
+    margin-bottom: 20px;
+  }
+  .login-field { margin-bottom: 14px; }
+  .login-field label {
+    display: block;
+    font-size: 10px; font-weight: 700;
+    color: var(--lilas); text-transform: uppercase;
+    letter-spacing: 0.08em; margin-bottom: 6px;
+  }
+  .login-field input {
+    width: 100%;
+    padding: 13px 16px;
+    border: 1.5px solid var(--lilas-medio);
+    border-radius: 12px;
+    font-family: inherit; font-size: 16px;
+    background: var(--lilas-claro);
+    color: var(--preto);
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .login-field input:focus {
+    border-color: var(--lilas);
+    background: var(--branco);
+  }
+  .login-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--lilas);
+    color: var(--branco);
+    border: none; border-radius: 12px;
+    font-family: inherit; font-size: 15px; font-weight: 700;
+    cursor: pointer;
+    margin-top: 6px;
+    transition: opacity 0.2s;
+  }
+  .login-btn:active { opacity: 0.85; }
+  .login-error {
+    color: #DC2626;
+    font-size: 12px;
+    margin-top: 10px;
+    text-align: center;
+    display: none;
+  }
+
+  /* ============ APP PRINCIPAL ============ */
+  #app-screen { display: none; }
+
   .app {
     max-width: 480px;
     margin: 0 auto;
@@ -84,9 +173,10 @@
     overflow: hidden;
   }
 
-  /* Relógio no canto superior direito */
+  /* Relógio + botão de logout */
+  .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
   .clock {
-    text-align: right; flex-shrink: 0;
+    text-align: right;
     background: var(--amarelo);
     padding: 8px 12px; border-radius: 10px;
     box-shadow: 0 2px 8px -2px rgba(252, 211, 77, 0.6);
@@ -106,15 +196,32 @@
     letter-spacing: 0.02em;
   }
 
-  /* ============ STATS (capacidade / chocando / livres) ============ */
+  /* Badge de papel do usuário + logout */
+  .user-badge {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .role-badge {
+    font-size: 8px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 3px 8px; border-radius: 20px;
+  }
+  .role-admin { background: var(--lilas); color: var(--branco); }
+  .role-visualizador { background: var(--cinza); color: var(--preto); }
+  .logout-btn {
+    background: none; border: 1px solid var(--lilas-medio);
+    border-radius: 6px; padding: 3px 8px;
+    font-family: inherit; font-size: 9px;
+    color: var(--lilas); cursor: pointer;
+  }
+
+  /* ============ STATS ============ */
   .stats {
     display: grid; grid-template-columns: repeat(3, 1fr);
     gap: 6px; margin-bottom: 20px;
   }
   .stat {
     background: var(--branco);
-    border-radius: 10px;
-    padding: 8px 10px;
+    border-radius: 10px; padding: 8px 10px;
     border: 1px solid var(--lilas-medio);
   }
   .stat-label {
@@ -128,442 +235,258 @@
     color: var(--preto); line-height: 1;
     font-variant-numeric: tabular-nums;
   }
-  /* Card do meio (Chocando) tem fundo amarelo */
   .stat:nth-child(2) { background: var(--amarelo); border-color: var(--amarelo-medio); }
   .stat:nth-child(2) .stat-label { color: var(--amarelo-escuro); }
 
   /* ============ MOTOR DE VIRAGEM ============ */
-  .tray-wrapper {
-    position: relative;
-    margin-bottom: 20px;
-  }
-
-  /* Bloco do motor — posicionado acima da bandeja */
+  .tray-wrapper { position: relative; margin-bottom: 20px; }
   .motor {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto -2px;
-    position: relative;
-    z-index: 3;
-    width: fit-content;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto -2px; position: relative; z-index: 3; width: fit-content;
   }
   .motor-box {
     background: linear-gradient(180deg, var(--lilas-escuro) 0%, var(--lilas) 100%);
-    color: var(--branco);
-    padding: 10px 28px 12px;
+    color: var(--branco); padding: 10px 28px 12px;
     border-radius: 14px 14px 4px 4px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 700;
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    box-shadow:
-      0 6px 16px -4px rgba(124, 58, 237, 0.5),
-      0 1px 0 rgba(255,255,255,0.2) inset;
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 700; font-size: 11px;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    box-shadow: 0 6px 16px -4px rgba(124, 58, 237, 0.5), 0 1px 0 rgba(255,255,255,0.2) inset;
     border: 1px solid var(--lilas-escuro);
   }
   .motor-icon {
-    width: 18px; height: 18px;
-    display: grid; place-items: center;
-    background: rgba(255,255,255,0.15);
-    border-radius: 50%;
+    width: 18px; height: 18px; display: grid; place-items: center;
+    background: rgba(255,255,255,0.15); border-radius: 50%;
   }
-  /* Ícone giratório do motor */
-  .motor-spin {
-    animation: spin 4s linear infinite;
-    transform-origin: center;
-  }
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
+  .motor-spin { animation: spin 4s linear infinite; transform-origin: center; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-  /* Eixo visual que conecta motor à bandeja */
   .eixo {
     height: 8px;
     background: linear-gradient(180deg, var(--lilas) 0%, var(--lilas-escuro) 100%);
-    border-radius: 4px 4px 0 0;
-    margin: 0 4px;
-    position: relative;
-    z-index: 2;
+    border-radius: 4px 4px 0 0; margin: 0 4px;
+    position: relative; z-index: 2;
     box-shadow: 0 2px 6px -2px rgba(124, 58, 237, 0.4);
   }
 
-  /* ============ BANDEJA ============
-     CORREÇÃO 3: fundo alterado de branco para verde oliva (#4B5320)
-  */
+  /* ============ BANDEJA — fundo verde oliva ============ */
   .tray {
     background: var(--verde-oliva);
     border: 1.5px solid var(--lilas-medio);
-    border-top: none;
-    border-radius: 0 0 16px 16px;
+    border-top: none; border-radius: 0 0 16px 16px;
     padding: 12px 6px 12px;
-    box-shadow:
-      0 10px 30px -10px rgba(91, 33, 182, 0.2);
+    box-shadow: 0 10px 30px -10px rgba(91, 33, 182, 0.2);
   }
 
-  /* ============ GRID DE 7 COLUNAS ============
-     CORREÇÃO 1: grid-template-columns fixo com 1fr.
-     As colunas nunca expandem além de 1/7 do espaço disponível.
-  */
+  /* ============ GRID FIXO DE 7 COLUNAS ============ */
   .grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 5px;
-    /* Garante que o grid não expanda além do container */
-    width: 100%;
-    overflow: hidden;
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 5px; width: 100%; overflow: hidden;
   }
 
-  /* Cada coluna da bandeja */
   .col {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    padding: 6px 3px 8px;
-    border-radius: 8px;
-    position: relative;
-    /* CORREÇÃO 1: impede que conteúdo interno expanda a coluna */
-    min-width: 0;
-    overflow: hidden;
+    display: flex; flex-direction: column; gap: 3px;
+    padding: 6px 3px 8px; border-radius: 8px;
+    position: relative; min-width: 0; overflow: hidden;
   }
-  .col-lilas {
-    background: var(--lilas-claro);
-    border: 1px solid var(--lilas-medio);
-  }
-  .col-amarelo {
-    background: var(--amarelo-claro);
-    border: 1px solid var(--amarelo-medio);
-  }
+  .col-lilas { background: var(--lilas-claro); border: 1px solid var(--lilas-medio); }
+  .col-amarelo { background: var(--amarelo-claro); border: 1px solid var(--amarelo-medio); }
 
-  /* Label da letra no topo de cada coluna (A, B, C...) */
   .col-label {
-    font-family: 'Fraunces', serif;
-    font-size: 15px;
-    font-weight: 700;
-    text-align: center;
-    line-height: 1;
-    padding: 2px 0 6px;
-    margin-bottom: 2px;
-    border-bottom: 1px dashed;
+    font-family: 'Fraunces', serif; font-size: 15px; font-weight: 700;
+    text-align: center; line-height: 1;
+    padding: 2px 0 6px; margin-bottom: 2px; border-bottom: 1px dashed;
   }
-  .col-lilas .col-label {
-    color: var(--lilas-escuro);
-    border-color: var(--lilas-medio);
-  }
-  .col-amarelo .col-label {
-    color: var(--amarelo-escuro);
-    border-color: var(--amarelo-medio);
-  }
+  .col-lilas .col-label { color: var(--lilas-escuro); border-color: var(--lilas-medio); }
+  .col-amarelo .col-label { color: var(--amarelo-escuro); border-color: var(--amarelo-medio); }
 
-  /* ============ OVO (célula circular) ============
-     CORREÇÃO 1: width: 100% + overflow: hidden garantem
-     que o ovo nunca expanda além da coluna pai.
-  */
+  /* ============ OVO ============ */
   .egg {
-    aspect-ratio: 1;
-    background: var(--branco);
-    border: 1.5px solid;
-    border-radius: 50%;
-    display: flex; flex-direction: column;
+    aspect-ratio: 1; background: var(--branco); border: 1.5px solid;
+    border-radius: 50%; display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    cursor: pointer;
-    padding: 2px; font-family: inherit;
+    cursor: pointer; padding: 2px; font-family: inherit;
     transition: transform 0.12s ease, background 0.2s;
-    position: relative;
-    /* CORREÇÃO 1: impede expansão por conteúdo interno */
-    overflow: hidden;
-    width: 100%;
-    min-width: 0;
+    position: relative; overflow: hidden; width: 100%; min-width: 0;
   }
   .col-lilas .egg { border-color: var(--lilas-medio); }
   .col-amarelo .egg { border-color: var(--amarelo-medio); }
   .egg:active { transform: scale(0.88); }
 
-  /* Número da posição em ovos vazios */
-  .egg-pos {
-    font-size: 8px; font-weight: 600;
-    line-height: 1; opacity: 0.55;
-  }
+  /* Visualizador não pode clicar para editar */
+  .role-view .egg { cursor: default; }
+
+  .egg-pos { font-size: 8px; font-weight: 600; line-height: 1; opacity: 0.55; }
   .col-lilas .egg-pos { color: var(--lilas); }
   .col-amarelo .egg-pos { color: var(--amarelo-escuro); }
 
-  /* ============ OVO CHOCANDO ============
-     Preenchido com a cor da coluna.
-     CORREÇÃO 2: exibe 4 linhas de informação centralizadas.
-  */
+  /* ============ OVO CHOCANDO ============ */
   .col-lilas .egg.chocando {
-    background: var(--lilas);
-    border-color: var(--lilas-escuro);
+    background: var(--lilas); border-color: var(--lilas-escuro);
     box-shadow: 0 2px 6px -1px rgba(124, 58, 237, 0.5);
   }
   .col-amarelo .egg.chocando {
-    background: var(--amarelo);
-    border-color: var(--amarelo-escuro);
+    background: var(--amarelo); border-color: var(--amarelo-escuro);
     box-shadow: 0 2px 6px -1px rgba(252, 211, 77, 0.6);
   }
-
-  /* Esconde número da posição quando chocando (a posição aparece no egg-info-pos) */
   .egg.chocando .egg-pos { display: none; }
 
-  /* ============ CONTEÚDO INTERNO DO OVO CHOCANDO ============
-     CORREÇÃO 2: container com as 4 linhas de info.
-     Todas as linhas são truncadas se ultrapassarem a largura do círculo.
-  */
+  /* 4 linhas de informação no ovo chocando */
   .egg-info {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1px;
-    width: 100%;
-    padding: 0 2px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 1px; width: 100%; padding: 0 2px;
   }
-
-  /* Linha 1: posição (ex: C4) */
   .egg-info-pos {
-    font-size: 7px;
-    font-weight: 800;
-    line-height: 1;
-    text-align: center;
-    width: 100%;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    font-size: 7px; font-weight: 800; line-height: 1;
+    text-align: center; width: 100%;
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    letter-spacing: 0.05em; text-transform: uppercase;
   }
-
-  /* Linha 2: nome do cruzamento */
   .egg-info-name {
-    font-size: 6px;
-    font-weight: 700;
-    line-height: 1.1;
-    text-align: center;
-    width: 100%;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    font-size: 6px; font-weight: 700; line-height: 1.1;
+    text-align: center; width: 100%;
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
   }
-
-  /* Linha 3: data de início */
   .egg-info-date {
-    font-size: 6px;
-    font-weight: 500;
-    line-height: 1.1;
-    text-align: center;
-    width: 100%;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    opacity: 0.85;
+    font-size: 6px; font-weight: 500; line-height: 1.1;
+    text-align: center; width: 100%;
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis; opacity: 0.85;
   }
-
-  /* Linha 4: tempo decorrido (dias/horas) */
   .egg-info-time {
-    font-family: 'Fraunces', serif;
-    font-size: 7px;
-    font-weight: 700;
-    line-height: 1;
-    text-align: center;
-    width: 100%;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    font-variant-numeric: tabular-nums;
-    margin-top: 1px;
+    font-family: 'Fraunces', serif; font-size: 7px; font-weight: 700;
+    line-height: 1; text-align: center; width: 100%;
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    font-variant-numeric: tabular-nums; margin-top: 1px;
   }
 
-  /* Cores do texto dentro do ovo chocando — coluna lilás */
-  .col-lilas .egg.chocando .egg-info-pos   { color: var(--amarelo); }
-  .col-lilas .egg.chocando .egg-info-name  { color: var(--branco); }
-  .col-lilas .egg.chocando .egg-info-date  { color: var(--lilas-medio); }
-  .col-lilas .egg.chocando .egg-info-time  { color: var(--amarelo-medio); }
+  /* Cores no ovo lilás chocando */
+  .col-lilas .egg.chocando .egg-info-pos  { color: var(--amarelo); }
+  .col-lilas .egg.chocando .egg-info-name { color: var(--branco); }
+  .col-lilas .egg.chocando .egg-info-date { color: var(--lilas-medio); }
+  .col-lilas .egg.chocando .egg-info-time { color: var(--amarelo-medio); }
 
-  /* Cores do texto dentro do ovo chocando — coluna amarela */
-  .col-amarelo .egg.chocando .egg-info-pos   { color: var(--lilas-escuro); }
-  .col-amarelo .egg.chocando .egg-info-name  { color: var(--preto); }
-  .col-amarelo .egg.chocando .egg-info-date  { color: var(--amarelo-escuro); }
-  .col-amarelo .egg.chocando .egg-info-time  { color: var(--lilas-escuro); }
+  /* Cores no ovo amarelo chocando */
+  .col-amarelo .egg.chocando .egg-info-pos  { color: var(--lilas-escuro); }
+  .col-amarelo .egg.chocando .egg-info-name { color: var(--preto); }
+  .col-amarelo .egg.chocando .egg-info-date { color: var(--amarelo-escuro); }
+  .col-amarelo .egg.chocando .egg-info-time { color: var(--lilas-escuro); }
 
-  /* Indicador pulsante no canto superior direito do ovo chocando */
+  /* Indicador pulsante */
   .egg.chocando::after {
-    content: ''; position: absolute;
-    top: 2px; right: 2px;
-    width: 4px; height: 4px;
-    background: var(--branco);
-    border-radius: 50%;
-    animation: pulse 2s infinite;
+    content: ''; position: absolute; top: 2px; right: 2px;
+    width: 4px; height: 4px; background: var(--branco);
+    border-radius: 50%; animation: pulse 2s infinite;
   }
   .col-amarelo .egg.chocando::after { background: var(--preto); }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-  /* ============ MODAL (bottom-sheet) ============ */
+  /* ============ MODAL ============ */
   .modal-backdrop {
     position: fixed; inset: 0;
     background: rgba(31, 27, 46, 0.55);
     backdrop-filter: blur(4px);
-    z-index: 100;
-    opacity: 0; pointer-events: none;
+    z-index: 100; opacity: 0; pointer-events: none;
     transition: opacity 0.25s;
   }
   .modal-backdrop.open { opacity: 1; pointer-events: auto; }
 
   .modal {
     position: fixed; bottom: 0; left: 0; right: 0;
-    background: var(--branco);
-    border-radius: 24px 24px 0 0;
+    background: var(--branco); border-radius: 24px 24px 0 0;
     padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
-    z-index: 101;
-    transform: translateY(100%);
+    z-index: 101; transform: translateY(100%);
     transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
     max-width: 480px; margin: 0 auto;
   }
   .modal.open { transform: translateY(0); }
 
   .modal-handle {
-    width: 40px; height: 4px;
-    background: var(--cinza); border-radius: 2px;
-    margin: 0 auto 16px;
+    width: 40px; height: 4px; background: var(--cinza);
+    border-radius: 2px; margin: 0 auto 16px;
   }
-
-  .modal-header {
-    display: flex; align-items: center; gap: 12px;
-    margin-bottom: 18px;
-  }
+  .modal-header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
   .modal-pos {
-    width: 52px; height: 52px;
-    background: var(--lilas); color: var(--branco);
-    border-radius: 50%;
-    display: grid; place-items: center;
-    font-family: 'Fraunces', serif;
-    font-size: 18px; font-weight: 700;
-    flex-shrink: 0;
+    width: 52px; height: 52px; background: var(--lilas); color: var(--branco);
+    border-radius: 50%; display: grid; place-items: center;
+    font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; flex-shrink: 0;
   }
   .modal-pos.amarelo { background: var(--amarelo); color: var(--preto); }
-  .modal-title {
-    font-family: 'Fraunces', serif;
-    font-size: 20px; font-weight: 600;
-    color: var(--preto); line-height: 1.1;
-  }
-  .modal-subtitle {
-    font-size: 12px; color: var(--lilas);
-    margin-top: 2px;
-  }
+  .modal-title { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 600; color: var(--preto); line-height: 1.1; }
+  .modal-subtitle { font-size: 12px; color: var(--lilas); margin-top: 2px; }
 
-  /* Campo de input do modal */
   .field { margin-bottom: 14px; }
   .field label {
-    display: block;
-    font-size: 10px; font-weight: 700;
+    display: block; font-size: 10px; font-weight: 700;
     color: var(--lilas); text-transform: uppercase;
     letter-spacing: 0.08em; margin-bottom: 6px;
   }
   .field input {
-    width: 100%;
-    padding: 14px 16px;
-    border: 1.5px solid var(--lilas-medio);
-    border-radius: 12px;
+    width: 100%; padding: 14px 16px;
+    border: 1.5px solid var(--lilas-medio); border-radius: 12px;
     font-family: inherit; font-size: 16px;
-    background: var(--lilas-claro);
-    color: var(--preto);
-    outline: none;
-    transition: border-color 0.2s, background 0.2s;
+    background: var(--lilas-claro); color: var(--preto);
+    outline: none; transition: border-color 0.2s, background 0.2s;
   }
-  .field input:focus {
-    border-color: var(--lilas);
-    background: var(--branco);
-  }
+  .field input:focus { border-color: var(--lilas); background: var(--branco); }
+  .field input:disabled { opacity: 0.6; cursor: not-allowed; }
 
-  /* Bloco de informações do modal (data início, tempo decorrido) */
   .info-block {
-    background: var(--lilas-claro);
-    border-radius: 12px;
-    padding: 10px 14px;
-    margin-bottom: 14px;
-    display: grid; gap: 6px;
+    background: var(--lilas-claro); border-radius: 12px;
+    padding: 10px 14px; margin-bottom: 14px; display: grid; gap: 6px;
   }
-  .info-row {
-    display: flex; justify-content: space-between;
-    align-items: center;
-    font-size: 13px;
-  }
-  .info-row span:first-child {
-    color: var(--lilas); font-weight: 500;
-  }
-  .info-row span:last-child {
-    color: var(--preto); font-weight: 600;
-    font-variant-numeric: tabular-nums;
-  }
-  .info-row .destaque {
-    font-family: 'Fraunces', serif;
-    font-size: 16px;
-    color: var(--lilas-escuro);
-  }
+  .info-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+  .info-row span:first-child { color: var(--lilas); font-weight: 500; }
+  .info-row span:last-child { color: var(--preto); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .info-row .destaque { font-family: 'Fraunces', serif; font-size: 16px; color: var(--lilas-escuro); }
 
-  /* Botões do modal */
-  .modal-actions {
-    display: flex; gap: 8px; margin-top: 4px;
-  }
+  .modal-actions { display: flex; gap: 8px; margin-top: 4px; }
   .btn {
-    flex: 1;
-    padding: 13px 16px;
-    border: none; border-radius: 12px;
-    font-family: inherit; font-size: 14px; font-weight: 700;
-    cursor: pointer;
-    transition: transform 0.1s, opacity 0.2s;
-    letter-spacing: 0.02em;
+    flex: 1; padding: 13px 16px; border: none; border-radius: 12px;
+    font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s; letter-spacing: 0.02em;
   }
   .btn:active { transform: scale(0.97); }
   .btn-primary { background: var(--lilas); color: var(--branco); }
   .btn-secondary { background: var(--lilas-claro); color: var(--lilas-escuro); }
-  .btn-danger {
-    background: var(--branco); color: var(--lilas-escuro);
-    border: 1.5px solid var(--lilas-medio);
-  }
+  .btn-danger { background: var(--branco); color: var(--lilas-escuro); border: 1.5px solid var(--lilas-medio); }
   .btn-full { width: 100%; margin-top: 8px; }
 
   /* ============ FOOTER ============ */
-  .footer-actions {
-    text-align: center; margin-top: 12px;
-  }
+  .footer-actions { text-align: center; margin-top: 12px; }
   .reset-btn {
-    background: none; border: none;
-    color: var(--lilas); opacity: 0.5;
-    font-family: inherit; font-size: 11px;
-    cursor: pointer; padding: 8px 16px;
-    text-decoration: underline;
+    background: none; border: none; color: var(--lilas); opacity: 0.5;
+    font-family: inherit; font-size: 11px; cursor: pointer;
+    padding: 8px 16px; text-decoration: underline;
   }
   .reset-btn:active { opacity: 1; }
 
-  /* ============ RESPONSIVIDADE ============ */
+  /* Loading overlay */
+  .loading {
+    position: fixed; inset: 0;
+    background: rgba(255,255,255,0.8);
+    display: grid; place-items: center;
+    z-index: 200; font-size: 14px; color: var(--lilas);
+    font-weight: 600;
+  }
+  .loading.hidden { display: none; }
 
-  /* Telas pequenas (iPhone SE e similares, < 380px) */
+  /* ============ RESPONSIVIDADE ============ */
   @media (max-width: 380px) {
     .app { padding: 12px 8px 80px; }
     .grid { gap: 3px; }
     .col { padding: 4px 2px 6px; gap: 2px; }
     .col-label { font-size: 12px; }
     .egg-pos { font-size: 7px; }
-    /* Fontes do ovo chocando menores em telas muito pequenas */
     .egg-info-pos  { font-size: 6px; }
     .egg-info-name { font-size: 5px; }
     .egg-info-date { font-size: 5px; }
     .egg-info-time { font-size: 6px; }
   }
-
-  /* Telas médias/grandes (tablet, desktop, > 540px) */
   @media (min-width: 540px) {
     .grid { gap: 8px; }
     .col-label { font-size: 18px; }
     .egg-pos { font-size: 10px; }
-    /* Fontes do ovo chocando maiores em telas grandes */
     .egg-info-pos  { font-size: 9px; }
     .egg-info-name { font-size: 8px; }
     .egg-info-date { font-size: 8px; }
@@ -573,76 +496,111 @@
 </head>
 <body>
 
-<div class="app">
+<!-- Loading global -->
+<div class="loading hidden" id="loading">Carregando...</div>
 
-  <header>
-    <div class="brand">
-      <div class="logo">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+<!-- ============ TELA DE LOGIN ============ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
           <ellipse cx="12" cy="13" rx="7" ry="9" fill="#FCD34D"/>
           <path d="M8 11 Q12 7 16 11" stroke="#5B21B6" stroke-width="1.5" fill="none" stroke-linecap="round"/>
         </svg>
       </div>
-      <div class="brand-text">
+      <div>
         <h1>BrStorm</h1>
-        <div class="slogan">A viagem — aves ornamentais &amp; poedeiras</div>
+        <p>A viagem — aves ornamentais & poedeiras</p>
       </div>
     </div>
-    <div class="clock">
-      <div class="clock-time" id="clock-time">--:--</div>
-      <div class="clock-date" id="clock-date">--</div>
+    <div class="login-title">Entrar</div>
+    <div class="login-field">
+      <label for="login-email">E-mail</label>
+      <input type="email" id="login-email" placeholder="seu@email.com" autocomplete="email">
     </div>
-  </header>
-
-  <!-- Cards de resumo: capacidade total, ovos chocando, posições livres -->
-  <div class="stats">
-    <div class="stat">
-      <div class="stat-label">Capacidade</div>
-      <div class="stat-value">63</div>
+    <div class="login-field">
+      <label for="login-password">Senha</label>
+      <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
     </div>
-    <div class="stat">
-      <div class="stat-label">Chocando</div>
-      <div class="stat-value" id="stat-chocando">0</div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">Livres</div>
-      <div class="stat-value" id="stat-livres">63</div>
-    </div>
+    <button class="login-btn" id="login-btn">Entrar</button>
+    <div class="login-error" id="login-error">E-mail ou senha incorretos.</div>
   </div>
-
-  <!-- Bandeja de incubação com motor de viragem -->
-  <div class="tray-wrapper">
-    <div class="motor">
-      <div class="motor-box">
-        <div class="motor-icon">
-          <svg class="motor-spin" width="12" height="12" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2 L12 6 M12 18 L12 22 M2 12 L6 12 M18 12 L22 12 M4.93 4.93 L7.76 7.76 M16.24 16.24 L19.07 19.07 M4.93 19.07 L7.76 16.24 M16.24 7.76 L19.07 4.93" stroke="white" stroke-width="2" stroke-linecap="round"/>
-            <circle cx="12" cy="12" r="3" stroke="white" stroke-width="2" fill="none"/>
-          </svg>
-        </div>
-        <span>Motor de Viragem</span>
-      </div>
-    </div>
-
-    <div class="eixo"></div>
-
-    <!-- Grid gerado pelo JavaScript -->
-    <div class="tray">
-      <div class="grid" id="grid"></div>
-    </div>
-  </div>
-
-  <div class="footer-actions">
-    <button class="reset-btn" id="reset-btn">Limpar todos os registros</button>
-  </div>
-
 </div>
 
-<!-- Modal de cadastro/edição (bottom-sheet) -->
+<!-- ============ APP PRINCIPAL ============ -->
+<div id="app-screen">
+  <div class="app">
+
+    <header>
+      <div class="brand">
+        <div class="logo">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <ellipse cx="12" cy="13" rx="7" ry="9" fill="#FCD34D"/>
+            <path d="M8 11 Q12 7 16 11" stroke="#5B21B6" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>BrStorm</h1>
+          <div class="slogan">A viagem — aves ornamentais &amp; poedeiras</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="clock">
+          <div class="clock-time" id="clock-time">--:--</div>
+          <div class="clock-date" id="clock-date">--</div>
+        </div>
+        <div class="user-badge">
+          <span class="role-badge" id="role-badge">--</span>
+          <button class="logout-btn" id="logout-btn">Sair</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">Capacidade</div>
+        <div class="stat-value">63</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Chocando</div>
+        <div class="stat-value" id="stat-chocando">00</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Livres</div>
+        <div class="stat-value" id="stat-livres">63</div>
+      </div>
+    </div>
+
+    <div class="tray-wrapper">
+      <div class="motor">
+        <div class="motor-box">
+          <div class="motor-icon">
+            <svg class="motor-spin" width="12" height="12" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2 L12 6 M12 18 L12 22 M2 12 L6 12 M18 12 L22 12 M4.93 4.93 L7.76 7.76 M16.24 16.24 L19.07 19.07 M4.93 19.07 L7.76 16.24 M16.24 7.76 L19.07 4.93" stroke="white" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="12" cy="12" r="3" stroke="white" stroke-width="2" fill="none"/>
+            </svg>
+          </div>
+          <span>Motor de Viragem</span>
+        </div>
+      </div>
+      <div class="eixo"></div>
+      <div class="tray">
+        <div class="grid" id="grid"></div>
+      </div>
+    </div>
+
+    <div class="footer-actions">
+      <button class="reset-btn" id="reset-btn">Limpar todos os registros</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ MODAL ============ -->
 <div class="modal-backdrop" id="backdrop"></div>
 <div class="modal" id="modal">
   <div class="modal-handle"></div>
-
   <div class="modal-header">
     <div class="modal-pos" id="modal-pos">A1</div>
     <div>
@@ -650,12 +608,10 @@
       <div class="modal-subtitle" id="modal-subtitle">Posição livre</div>
     </div>
   </div>
-
   <div class="field">
     <label for="egg-name-input">Nome (galinha ou casal)</label>
     <input type="text" id="egg-name-input" placeholder="Ex: Aurora, Casal 03..." maxlength="20" autocomplete="off">
   </div>
-
   <div class="info-block">
     <div class="info-row">
       <span>Início</span>
@@ -666,7 +622,6 @@
       <span class="destaque" id="info-tempo">—</span>
     </div>
   </div>
-
   <div class="modal-actions">
     <button class="btn btn-secondary" id="btn-cancel">Cancelar</button>
     <button class="btn btn-primary" id="btn-save">Iniciar incubação</button>
@@ -675,65 +630,203 @@
 </div>
 
 <script>
-// ============ CONFIGURAÇÃO ============
-const COLS = ['A','B','C','D','E','F','G']; // 7 colunas da bandeja
-const ROWS = 9;                              // 9 posições por coluna = 63 total
-const STORAGE_KEY = 'brstorm-eggs-v2';       // chave do localStorage
+// ============ CONFIGURAÇÃO SUPABASE ============
+// URL e chave pública do projeto Granja-BrStorm
+const SUPABASE_URL  = 'https://jlyvkhrwmhhtpdchavzn.supabase.co';
+const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpseXZraHJ3bWhodHBkY2hhdnpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4ODM5MjksImV4cCI6MjA5NjQ1OTkyOX0.YopMiNfZAwbCBaK6loz3FvhEr_TllT-Vn_7_A_rUi_w';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Estado em memória dos ovos em incubação
-let eggs = loadEggs();
-let currentPos = null; // posição aberta no modal no momento
+// ============ ESTADO GLOBAL ============
+const COLS = ['A','B','C','D','E','F','G'];
+const ROWS = 9;
 
-// ============ PERSISTÊNCIA (localStorage) ============
+let eggs       = {};      // mapa posicao -> registro
+let currentPos = null;    // posição aberta no modal
+let userRole   = null;    // 'admin' ou 'visualizador'
+let userId     = null;    // UUID do usuário logado
 
-// Carrega os ovos salvos no navegador
-function loadEggs() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
-  catch { return {}; }
+// ============ UTILITÁRIOS ============
+
+function showLoading(show) {
+  document.getElementById('loading').classList.toggle('hidden', !show);
 }
 
-// Salva o estado atual no navegador
-function saveEggs() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(eggs));
-}
-
-// ============ FORMATAÇÃO ============
-
-// Formata tempo decorrido desde o início da incubação
-// Retorna: "3d 14h" (dias e horas)
-function formatElapsed(startMs) {
-  const diff = Date.now() - startMs;
+// Formata tempo decorrido desde início da incubação
+function formatElapsed(startIso) {
+  const diff  = Date.now() - new Date(startIso).getTime();
   const days  = Math.floor(diff / 86400000);
   const hours = Math.floor((diff % 86400000) / 3600000);
   return `${days}d ${hours}h`;
 }
 
-// Formata data/hora completa para o modal (ex: 08/06/2026, 05:07)
-function formatDateTime(ms) {
-  return new Date(ms).toLocaleString('pt-BR', {
+// Formata data/hora completa para o modal
+function formatDateTime(isoStr) {
+  return new Date(isoStr).toLocaleString('pt-BR', {
     timeZone: 'America/Sao_Paulo',
     day: '2-digit', month: '2-digit', year: 'numeric',
     hour: '2-digit', minute: '2-digit'
   });
 }
 
-// CORREÇÃO 2: formata data curta para exibição no ovo (ex: 08/06/26)
-function formatDateShort(ms) {
-  return new Date(ms).toLocaleDateString('pt-BR', {
+// Formata data curta para o ovo (dd/mm/aa)
+function formatDateShort(isoStr) {
+  return new Date(isoStr).toLocaleDateString('pt-BR', {
     timeZone: 'America/Sao_Paulo',
     day: '2-digit', month: '2-digit', year: '2-digit'
   });
 }
 
-// Determina o tema de cor da coluna: lilás (índice par) ou amarelo (índice ímpar)
+// Tema da coluna: lilás (par) ou amarelo (ímpar)
 function colTema(letter) {
-  const idx = COLS.indexOf(letter);
-  return idx % 2 === 0 ? 'lilas' : 'amarelo';
+  return COLS.indexOf(letter) % 2 === 0 ? 'lilas' : 'amarelo';
 }
 
-// ============ RENDERIZAÇÃO DA GRADE ============
+// ============ AUTENTICAÇÃO ============
 
-// Monta ou atualiza todas as 63 células da bandeja
+// Verifica sessão ativa ao carregar a página
+async function checkSession() {
+  showLoading(true);
+  const { data: { session } } = await db.auth.getSession();
+  if (session) {
+    await initApp(session.user);
+  } else {
+    showLoginScreen();
+  }
+  showLoading(false);
+}
+
+// Exibe tela de login
+function showLoginScreen() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app-screen').style.display   = 'none';
+}
+
+// Exibe app principal
+function showAppScreen() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display   = 'block';
+}
+
+// Inicializa o app após login bem-sucedido
+async function initApp(user) {
+  userId   = user.id;
+  // Papel do usuário fica em app_metadata.role
+  userRole = user.app_metadata?.role || 'visualizador';
+
+  // Exibe badge de papel no header
+  const badge = document.getElementById('role-badge');
+  badge.textContent = userRole === 'admin' ? 'Admin' : 'Visualizador';
+  badge.className   = `role-badge role-${userRole}`;
+
+  // Visualizador não pode editar — adiciona classe no grid
+  if (userRole !== 'admin') {
+    document.getElementById('grid').classList.add('role-view');
+    document.getElementById('reset-btn').style.display = 'none';
+  }
+
+  showAppScreen();
+  await loadEggs();
+  updateClock();
+}
+
+// Login com e-mail e senha
+document.getElementById('login-btn').addEventListener('click', async () => {
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errorEl  = document.getElementById('login-error');
+  errorEl.style.display = 'none';
+
+  if (!email || !password) return;
+  showLoading(true);
+
+  const { data, error } = await db.auth.signInWithPassword({ email, password });
+  showLoading(false);
+
+  if (error) {
+    errorEl.style.display = 'block';
+    return;
+  }
+  await initApp(data.user);
+});
+
+// Enter no campo de senha faz login
+document.getElementById('login-password').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('login-btn').click();
+});
+
+// Logout
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  await db.auth.signOut();
+  eggs     = {};
+  userRole = null;
+  userId   = null;
+  showLoginScreen();
+});
+
+// ============ BANCO DE DADOS ============
+
+// Carrega todos os ovos em incubação do Supabase
+async function loadEggs() {
+  const { data, error } = await db
+    .from('incubacoes')
+    .select('*');
+
+  if (error) { console.error('Erro ao carregar:', error); return; }
+
+  // Converte array de registros em mapa posicao -> registro
+  eggs = {};
+  data.forEach(row => { eggs[row.posicao] = row; });
+  renderGrid();
+}
+
+// Salva ou atualiza um ovo no Supabase
+async function saveEgg(pos, name) {
+  if (eggs[pos]) {
+    // Atualiza nome
+    const { error } = await db
+      .from('incubacoes')
+      .update({ nome: name })
+      .eq('posicao', pos);
+    if (error) { console.error('Erro ao atualizar:', error); return; }
+    eggs[pos].nome = name;
+  } else {
+    // Novo registro
+    const { data, error } = await db
+      .from('incubacoes')
+      .insert({ posicao: pos, nome: name, criado_por: userId })
+      .select()
+      .single();
+    if (error) { console.error('Erro ao inserir:', error); return; }
+    eggs[pos] = data;
+  }
+  renderGrid();
+}
+
+// Remove um ovo do Supabase
+async function deleteEgg(pos) {
+  const { error } = await db
+    .from('incubacoes')
+    .delete()
+    .eq('posicao', pos);
+  if (error) { console.error('Erro ao deletar:', error); return; }
+  delete eggs[pos];
+  renderGrid();
+}
+
+// Remove todos os ovos (somente admin)
+async function deleteAllEggs() {
+  const { error } = await db
+    .from('incubacoes')
+    .delete()
+    .neq('id', '00000000-0000-0000-0000-000000000000'); // deleta tudo
+  if (error) { console.error('Erro ao limpar:', error); return; }
+  eggs = {};
+  renderGrid();
+}
+
+// ============ RENDERIZAÇÃO ============
+
 function renderGrid() {
   const grid = document.getElementById('grid');
   grid.innerHTML = '';
@@ -741,7 +834,7 @@ function renderGrid() {
 
   COLS.forEach(letter => {
     const tema = colTema(letter);
-    const col = document.createElement('div');
+    const col  = document.createElement('div');
     col.className = `col col-${tema}`;
     col.innerHTML = `<div class="col-label">${letter}</div>`;
 
@@ -749,78 +842,68 @@ function renderGrid() {
       const pos = `${letter}${n}`;
       const egg = eggs[pos];
       const btn = document.createElement('button');
-      btn.className = 'egg' + (egg ? ' chocando' : '');
+      btn.className  = 'egg' + (egg ? ' chocando' : '');
       btn.dataset.pos = pos;
 
       if (egg) {
         chocando++;
-        // CORREÇÃO 2: exibe 4 linhas de informação no ovo chocando:
-        // posição | nome | data início | tempo decorrido
+        // 4 linhas: posição | nome | data início | tempo decorrido
         btn.innerHTML = `
           <div class="egg-info">
             <div class="egg-info-pos">${pos}</div>
-            <div class="egg-info-name">${egg.name}</div>
-            <div class="egg-info-date">${formatDateShort(egg.start)}</div>
-            <div class="egg-info-time" data-start="${egg.start}">${formatElapsed(egg.start)}</div>
-          </div>
-        `;
+            <div class="egg-info-name">${egg.nome}</div>
+            <div class="egg-info-date">${formatDateShort(egg.inicio)}</div>
+            <div class="egg-info-time" data-start="${egg.inicio}">${formatElapsed(egg.inicio)}</div>
+          </div>`;
       } else {
-        // Ovo vazio: mostra apenas o número da posição
         btn.innerHTML = `<div class="egg-pos">${n}</div>`;
       }
 
-      btn.addEventListener('click', () => openModal(pos));
+      // Somente admin abre modal ao clicar
+      if (userRole === 'admin') {
+        btn.addEventListener('click', () => openModal(pos));
+      }
       col.appendChild(btn);
     }
     grid.appendChild(col);
   });
 
-  // Atualiza os cards de resumo no topo
   document.getElementById('stat-chocando').textContent = String(chocando).padStart(2,'0');
-  document.getElementById('stat-livres').textContent = String(63 - chocando).padStart(2,'0');
+  document.getElementById('stat-livres').textContent   = String(63 - chocando).padStart(2,'0');
 }
 
 // ============ MODAL ============
 
-// Abre o bottom-sheet para uma posição específica
 function openModal(pos) {
   currentPos = pos;
   const letter = pos[0];
   const tema   = colTema(letter);
   const egg    = eggs[pos];
 
-  const modalPos      = document.getElementById('modal-pos');
-  const modalTitle    = document.getElementById('modal-title');
-  const modalSubtitle = document.getElementById('modal-subtitle');
-  const input         = document.getElementById('egg-name-input');
-  const btnSave       = document.getElementById('btn-save');
-  const btnRemove     = document.getElementById('btn-remove');
-  const infoInicio    = document.getElementById('info-inicio');
-  const infoTempo     = document.getElementById('info-tempo');
-  const tempoRow      = document.getElementById('info-tempo-row');
+  document.getElementById('modal-pos').textContent = pos;
+  document.getElementById('modal-pos').classList.toggle('amarelo', tema === 'amarelo');
 
-  modalPos.textContent = pos;
-  modalPos.classList.toggle('amarelo', tema === 'amarelo');
+  const input = document.getElementById('egg-name-input');
 
   if (egg) {
-    // Posição ocupada: modo de edição
-    modalTitle.textContent       = 'Em incubação';
-    modalSubtitle.textContent    = `Coluna ${letter} · editar ou liberar`;
-    input.value                  = egg.name;
-    btnSave.textContent          = 'Salvar alterações';
-    btnRemove.style.display      = 'block';
-    infoInicio.textContent       = formatDateTime(egg.start);
-    infoTempo.textContent        = formatElapsed(egg.start);
-    tempoRow.style.display       = 'flex';
+    document.getElementById('modal-title').textContent    = 'Em incubação';
+    document.getElementById('modal-subtitle').textContent = `Coluna ${letter} · editar ou liberar`;
+    input.value = egg.nome;
+    input.disabled = false;
+    document.getElementById('btn-save').textContent       = 'Salvar alterações';
+    document.getElementById('btn-remove').style.display   = 'block';
+    document.getElementById('info-inicio').textContent    = formatDateTime(egg.inicio);
+    document.getElementById('info-tempo').textContent     = formatElapsed(egg.inicio);
+    document.getElementById('info-tempo-row').style.display = 'flex';
   } else {
-    // Posição livre: modo de cadastro
-    modalTitle.textContent       = 'Nova incubação';
-    modalSubtitle.textContent    = `Coluna ${letter} · posição livre`;
-    input.value                  = '';
-    btnSave.textContent          = 'Iniciar incubação';
-    btnRemove.style.display      = 'none';
-    infoInicio.textContent       = formatDateTime(Date.now()) + ' (agora)';
-    tempoRow.style.display       = 'none';
+    document.getElementById('modal-title').textContent    = 'Nova incubação';
+    document.getElementById('modal-subtitle').textContent = `Coluna ${letter} · posição livre`;
+    input.value = '';
+    input.disabled = false;
+    document.getElementById('btn-save').textContent       = 'Iniciar incubação';
+    document.getElementById('btn-remove').style.display   = 'none';
+    document.getElementById('info-inicio').textContent    = formatDateTime(new Date().toISOString()) + ' (agora)';
+    document.getElementById('info-tempo-row').style.display = 'none';
   }
 
   document.getElementById('modal').classList.add('open');
@@ -828,38 +911,28 @@ function openModal(pos) {
   setTimeout(() => input.focus(), 300);
 }
 
-// Fecha o modal
 function closeModal() {
   document.getElementById('modal').classList.remove('open');
   document.getElementById('backdrop').classList.remove('open');
   currentPos = null;
 }
 
-// Salva ou atualiza o ovo da posição atual
-function saveCurrentEgg() {
+async function saveCurrentEgg() {
   if (!currentPos) return;
   const name = document.getElementById('egg-name-input').value.trim();
   if (!name) { document.getElementById('egg-name-input').focus(); return; }
-
-  if (eggs[currentPos]) {
-    // Atualiza nome, mantém data de início original
-    eggs[currentPos].name = name;
-  } else {
-    // Novo registro: salva nome e timestamp atual
-    eggs[currentPos] = { name, start: Date.now() };
-  }
-  saveEggs();
-  renderGrid();
+  showLoading(true);
+  await saveEgg(currentPos, name);
+  showLoading(false);
   closeModal();
 }
 
-// Remove o ovo da posição atual após confirmação
-function removeCurrentEgg() {
+async function removeCurrentEgg() {
   if (!currentPos) return;
   if (!confirm(`Liberar a posição ${currentPos}? O registro será apagado.`)) return;
-  delete eggs[currentPos];
-  saveEggs();
-  renderGrid();
+  showLoading(true);
+  await deleteEgg(currentPos);
+  showLoading(false);
   closeModal();
 }
 
@@ -872,51 +945,43 @@ document.getElementById('egg-name-input').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') saveCurrentEgg();
 });
 
-// ============ RELÓGIO E ATUALIZAÇÃO DE TEMPOS ============
+document.getElementById('reset-btn').addEventListener('click', async () => {
+  if (!confirm('Apagar TODOS os registros? Esta ação não pode ser desfeita.')) return;
+  showLoading(true);
+  await deleteAllEggs();
+  showLoading(false);
+});
 
-// Atualiza o relógio do header e os tempos decorridos de todos os ovos
+// ============ RELÓGIO ============
 function updateClock() {
   const now  = new Date();
   const opts = { timeZone: 'America/Sao_Paulo', hour12: false };
-
   document.getElementById('clock-time').textContent =
     now.toLocaleTimeString('pt-BR', { ...opts, hour: '2-digit', minute: '2-digit' });
   document.getElementById('clock-date').textContent =
     now.toLocaleDateString('pt-BR', { ...opts, weekday: 'short', day: '2-digit', month: 'short' });
 
-  // Atualiza tempo decorrido em cada ovo chocando sem re-renderizar tudo
+  // Atualiza tempo decorrido nos ovos chocando
   document.querySelectorAll('.egg-info-time[data-start]').forEach(el => {
-    el.textContent = formatElapsed(parseInt(el.dataset.start));
+    el.textContent = formatElapsed(el.dataset.start);
   });
 
-  // Atualiza tempo no modal se estiver aberto
+  // Atualiza no modal se estiver aberto
   if (currentPos && eggs[currentPos]) {
-    document.getElementById('info-tempo').textContent = formatElapsed(eggs[currentPos].start);
+    document.getElementById('info-tempo').textContent = formatElapsed(eggs[currentPos].inicio);
   }
 }
 
-// Botão de reset total
-document.getElementById('reset-btn').addEventListener('click', () => {
-  if (!confirm('Apagar TODOS os registros de incubação? Esta ação não pode ser desfeita.')) return;
-  eggs = {};
-  saveEggs();
-  renderGrid();
-});
-
-// ============ INICIALIZAÇÃO ============
-renderGrid();   // monta a grade com dados do localStorage
-updateClock();  // atualiza relógio imediatamente
-
-// Atualiza tempos decorridos a cada minuto
 setInterval(updateClock, 60000);
-
-// Atualiza somente os segundos do relógio a cada 1 segundo
 setInterval(() => {
   const now  = new Date();
   const opts = { timeZone: 'America/Sao_Paulo', hour12: false };
   document.getElementById('clock-time').textContent =
     now.toLocaleTimeString('pt-BR', { ...opts, hour: '2-digit', minute: '2-digit' });
 }, 1000);
+
+// ============ INICIALIZAÇÃO ============
+checkSession();
 </script>
 
 </body>
