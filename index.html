@@ -794,18 +794,15 @@ async function saveEgg(pos, name) {
       .update({ nome: name })
       .eq('posicao', pos);
     if (error) { console.error('Erro ao atualizar:', error); return; }
-    eggs[pos].nome = name;
   } else {
-    // Novo registro
-    const { data, error } = await db
+    // Novo registro — sem .select() para evitar problema de fuso na primeira renderização
+    const { error } = await db
       .from('incubacoes')
-      .insert({ posicao: pos, nome: name, criado_por: userId })
-      .select()
-      .single();
+      .insert({ posicao: pos, nome: name, criado_por: userId });
     if (error) { console.error('Erro ao inserir:', error); return; }
-    eggs[pos] = data;
   }
-  renderGrid();
+  // Recarrega tudo do banco — garante timestamp UTC correto em todos os ovos
+  await loadEggs();
 }
 
 // Remove um ovo do Supabase
