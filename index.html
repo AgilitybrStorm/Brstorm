@@ -711,8 +711,13 @@ function showAppScreen() {
 // Inicializa o app após login bem-sucedido
 async function initApp(user) {
   userId   = user.id;
-  // Papel do usuário fica em app_metadata.role
-  userRole = user.app_metadata?.role || 'visualizador';
+  // Busca papel do usuário na tabela user_roles
+  const { data: roleData } = await db
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', user.id)
+    .single();
+  userRole = roleData?.role || 'visualizador';
 
   // Exibe badge de papel no header
   const badge = document.getElementById('role-badge');
