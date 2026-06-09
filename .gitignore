@@ -1,0 +1,12 @@
+# Segredos — NUNCA subir para o GitHub
+.env
+.env.local
+.env.*.local
+
+# Ferramentas administrativas locais (não fazem parte do site)
+_admin/
+
+# Dependências e lixo de ferramentas
+node_modules/
+npm-debug.log*
+.DS_Store

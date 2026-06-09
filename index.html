@@ -302,12 +302,19 @@
 
   /* ============ OVO ============ */
   .egg {
-    aspect-ratio: 1; background: var(--branco); border: 1.5px solid;
-    border-radius: 50%; display: flex; flex-direction: column;
+    aspect-ratio: 0.82; background: var(--branco); border: 1.5px solid;
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     cursor: pointer; padding: 2px; font-family: inherit;
     transition: transform 0.12s ease, background 0.2s;
     position: relative; overflow: hidden; width: 100%; min-width: 0;
+  }
+  /* brilho/reflexo no topo — dá aparência de ovo 3D (Opção 2) */
+  .egg::before {
+    content: ''; position: absolute; top: 10%; left: 22%;
+    width: 42%; height: 30%; border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 70%);
+    pointer-events: none; z-index: 1;
   }
   .col-lilas .egg { border-color: var(--lilas-medio); }
   .col-amarelo .egg { border-color: var(--amarelo-medio); }
@@ -316,7 +323,7 @@
   /* Visualizador não pode clicar para editar */
   .role-view .egg { cursor: default; }
 
-  .egg-pos { font-size: 8px; font-weight: 600; line-height: 1; opacity: 0.55; }
+  .egg-pos { font-size: 8px; font-weight: 600; line-height: 1; opacity: 0.55; position: relative; z-index: 2; }
   .col-lilas .egg-pos { color: var(--lilas); }
   .col-amarelo .egg-pos { color: var(--amarelo-escuro); }
 
@@ -336,6 +343,7 @@
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     gap: 1px; width: 100%; padding: 0 2px;
+    position: relative; z-index: 2;
   }
   .egg-info-pos {
     font-size: 7px; font-weight: 800; line-height: 1;
@@ -371,6 +379,14 @@
   .col-amarelo .egg.chocando .egg-info-name { color: var(--preto); }
   .col-amarelo .egg.chocando .egg-info-date { color: var(--amarelo-escuro); }
   .col-amarelo .egg.chocando .egg-info-time { color: var(--lilas-escuro); }
+
+  /* ============ OVO COM COR PERSONALIZADA (paleta) ============ */
+  /* Fundo/borda vêm via JS (inline); texto usa --egg-text com contraste calculado */
+  .egg.egg-custom .egg-info-pos,
+  .egg.egg-custom .egg-info-name,
+  .egg.egg-custom .egg-info-time { color: var(--egg-text); }
+  .egg.egg-custom .egg-info-date { color: var(--egg-text); opacity: 0.82; }
+  .egg.egg-custom::after { background: var(--egg-text); }
 
   /* Indicador pulsante */
   .egg.chocando::after {
@@ -430,6 +446,17 @@
   }
   .field input:focus { border-color: var(--lilas); background: var(--branco); }
   .field input:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  /* Paleta de cores no modal */
+  .color-palette { display: flex; flex-wrap: wrap; gap: 8px; }
+  .color-swatch {
+    width: 34px; height: 34px; padding: 0; cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    box-shadow: 0 1px 4px -1px rgba(0,0,0,0.35);
+    transition: transform 0.12s;
+  }
+  .color-swatch.selected { border-color: var(--preto); transform: scale(1.12); }
 
   .info-block {
     background: var(--lilas-claro); border-radius: 12px;
@@ -491,6 +518,53 @@
     .egg-info-name { font-size: 8px; }
     .egg-info-date { font-size: 8px; }
     .egg-info-time { font-size: 9px; }
+  }
+
+  /* ---- Desktop: dashboard 2 colunas, bandeja ajustada à altura da tela ---- */
+  @media (min-width: 768px) {
+    #app-screen { min-height: 100vh; }
+    .app {
+      max-width: 1100px;
+      min-height: 100vh;
+      padding: 16px 24px 20px;        /* remove o padding-bottom de 80px do mobile */
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      grid-template-rows: auto 1fr auto;
+      grid-template-areas:
+        "header header"
+        "stats  tray"
+        "footer footer";
+      column-gap: 28px;
+      align-items: start;
+    }
+    header          { grid-area: header; }
+    .footer-actions { grid-area: footer; }
+
+    /* Stats empilhados na coluna lateral esquerda */
+    .stats { grid-area: stats; grid-template-columns: 1fr; gap: 10px; margin-bottom: 0; }
+
+    /* Bandeja QUADRADA como a real, ovos EM PÉ com respiro horizontal. ~580px é calibrável. */
+    .tray-wrapper {
+      grid-area: tray;
+      justify-self: center;
+      width: 100%;
+      max-width: 580px;
+      margin-bottom: 0;
+    }
+    .tray { aspect-ratio: 1; }          /* moldura verde quadrada */
+    .grid { height: 100%; }
+    .col  { height: 100%; justify-content: flex-start; }
+
+    /* Ovo em pé, dimensionado pela ALTURA (9 cabem sem estourar),
+       centralizado na coluna larga → sobra de largura vira espaço entre os ovos. */
+    .egg {
+      flex: 1 1 0;
+      width: auto; height: auto;
+      min-width: 0; min-height: 0;
+      max-width: 100%;
+      aspect-ratio: 0.82;
+      align-self: center;
+    }
   }
 </style>
 </head>
@@ -612,6 +686,10 @@
     <label for="egg-name-input">Nome (galinha ou casal)</label>
     <input type="text" id="egg-name-input" placeholder="Ex: Aurora, Casal 03..." maxlength="20" autocomplete="off">
   </div>
+  <div class="field">
+    <label>Cor de identificação</label>
+    <div class="color-palette" id="color-palette"></div>
+  </div>
   <div class="info-block">
     <div class="info-row">
       <span>Início</span>
@@ -641,10 +719,14 @@ const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 const COLS = ['A','B','C','D','E','F','G'];
 const ROWS = 9;
 
-let eggs       = {};      // mapa posicao -> registro
-let currentPos = null;    // posição aberta no modal
-let userRole   = null;    // 'admin' ou 'visualizador'
-let userId     = null;    // UUID do usuário logado
+let eggs          = {};   // mapa posicao -> registro
+let currentPos    = null; // posição aberta no modal
+let userRole      = null; // 'admin' ou 'visualizador'
+let userId        = null; // UUID do usuário logado
+let selectedColor = null; // cor escolhida no modal
+
+// Paleta fixa de identificação (8 cores distintas)
+const PALETTE = ['#7C3AED','#FCD34D','#EF4444','#10B981','#3B82F6','#F97316','#EC4899','#64748B'];
 
 // ============ UTILITÁRIOS ============
 
@@ -680,6 +762,21 @@ function formatDateShort(isoStr) {
 // Tema da coluna: lilás (par) ou amarelo (ímpar)
 function colTema(letter) {
   return COLS.indexOf(letter) % 2 === 0 ? 'lilas' : 'amarelo';
+}
+
+// Cor hex padrão do tema da coluna (usada quando o admin não troca)
+function temaCor(letter) {
+  return colTema(letter) === 'lilas' ? '#7C3AED' : '#FCD34D';
+}
+
+// Decide texto branco ou escuro conforme a luminância da cor de fundo
+function contrastText(hex) {
+  const h = hex.replace('#','');
+  const r = parseInt(h.substr(0,2),16);
+  const g = parseInt(h.substr(2,2),16);
+  const b = parseInt(h.substr(4,2),16);
+  const lum = 0.299*r + 0.587*g + 0.114*b;
+  return lum > 150 ? '#1F1B2E' : '#FFFFFF';
 }
 
 // ============ AUTENTICAÇÃO ============
@@ -786,19 +883,19 @@ async function loadEggs() {
 }
 
 // Salva ou atualiza um ovo no Supabase
-async function saveEgg(pos, name) {
+async function saveEgg(pos, name, cor) {
   if (eggs[pos]) {
-    // Atualiza nome
+    // Atualiza nome e cor
     const { error } = await db
       .from('incubacoes')
-      .update({ nome: name })
+      .update({ nome: name, cor: cor })
       .eq('posicao', pos);
     if (error) { console.error('Erro ao atualizar:', error); return; }
   } else {
     // Novo registro — sem .select() para evitar problema de fuso na primeira renderização
     const { error } = await db
       .from('incubacoes')
-      .insert({ posicao: pos, nome: name, criado_por: userId });
+      .insert({ posicao: pos, nome: name, cor: cor, criado_por: userId });
     if (error) { console.error('Erro ao inserir:', error); return; }
   }
   // Recarrega tudo do banco — garante timestamp UTC correto em todos os ovos
@@ -849,6 +946,13 @@ function renderGrid() {
 
       if (egg) {
         chocando++;
+        // Cor personalizada (se houver): fundo + borda + texto com contraste
+        if (egg.cor) {
+          btn.classList.add('egg-custom');
+          btn.style.background  = egg.cor;
+          btn.style.borderColor = 'rgba(0,0,0,0.22)';
+          btn.style.setProperty('--egg-text', contrastText(egg.cor));
+        }
         // 4 linhas: posição | nome | data início | tempo decorrido
         btn.innerHTML = `
           <div class="egg-info">
@@ -876,6 +980,25 @@ function renderGrid() {
 
 // ============ MODAL ============
 
+// Monta os botões da paleta de cores (uma única vez)
+function renderPalette() {
+  const wrap = document.getElementById('color-palette');
+  wrap.innerHTML = '';
+  PALETTE.forEach(cor => {
+    const sw = document.createElement('button');
+    sw.type = 'button';
+    sw.className = 'color-swatch';
+    sw.style.background = cor;
+    sw.dataset.cor = cor;
+    sw.addEventListener('click', () => {
+      selectedColor = cor;
+      document.querySelectorAll('.color-swatch').forEach(s =>
+        s.classList.toggle('selected', s.dataset.cor === cor));
+    });
+    wrap.appendChild(sw);
+  });
+}
+
 function openModal(pos) {
   currentPos = pos;
   const letter = pos[0];
@@ -884,6 +1007,11 @@ function openModal(pos) {
 
   document.getElementById('modal-pos').textContent = pos;
   document.getElementById('modal-pos').classList.toggle('amarelo', tema === 'amarelo');
+
+  // Cor selecionada: a do ovo existente, ou a cor padrão do tema da coluna
+  selectedColor = (egg && egg.cor) ? egg.cor : temaCor(letter);
+  document.querySelectorAll('.color-swatch').forEach(s =>
+    s.classList.toggle('selected', s.dataset.cor === selectedColor));
 
   const input = document.getElementById('egg-name-input');
 
@@ -924,7 +1052,7 @@ async function saveCurrentEgg() {
   const name = document.getElementById('egg-name-input').value.trim();
   if (!name) { document.getElementById('egg-name-input').focus(); return; }
   showLoading(true);
-  await saveEgg(currentPos, name);
+  await saveEgg(currentPos, name, selectedColor);
   showLoading(false);
   closeModal();
 }
@@ -983,6 +1111,7 @@ setInterval(() => {
 }, 1000);
 
 // ============ INICIALIZAÇÃO ============
+renderPalette();
 checkSession();
 </script>
 
